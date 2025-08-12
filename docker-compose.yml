@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  api:
+    build: ./api
+    container_name: pdf_api
+    env_file: .env
+    command: uvicorn app:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    depends_on:
+      - rabbitmq
+      - redis
+      - tika
+
+  worker:
+    build: ./api
+    container_name: pdf_worker
+    env_file: .env
+    command: celery -A tasks worker --loglevel=info
+    volumes:
+      - ./data:/data
+    depends_on:
+      - rabbitmq
+      - redis
+      - tika
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: mq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  redis:
+    image: redis:7-alpine
+    container_name: cache
+    ports:
+      - "6379:6379"
+
+  tika:
+    image: apache/tika:latest
+    container_name: tika
+    ports:
+      - "9998:9998"
+    environment:
+      - TIKA_CONFIG=
