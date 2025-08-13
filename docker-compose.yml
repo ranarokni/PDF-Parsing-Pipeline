@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   api:
-    build: ./api
+    build: .
     container_name: pdf_api
     env_file: .env
     command: uvicorn app:app --host 0.0.0.0 --port 8000
@@ -16,7 +16,7 @@ services:
       - tika
 
   worker:
-    build: ./api
+    build: .
     container_name: pdf_worker
     env_file: .env
     command: celery -A tasks worker --loglevel=info
